@@ -2,7 +2,7 @@
 
 Date: 2026-07-28
 Status: approved, ready for implementation planning
-Repo: `jeffory/PicOS-Rally` (public, default branch `main`, no tags at time of writing)
+Repo: `PicoDeck/rally` (public, default branch `main`, no tags at time of writing)
 
 ## Goal
 
@@ -42,8 +42,8 @@ There is no `.github/` directory and no existing automation.
 
 ### Why plain semver rather than a prerelease suffix
 
-`app.json`'s version string is consumed by the PicOS launcher, which lives in
-the PicOS repo and is not vendored here, so the strictness of its parser cannot
+`app.json`'s version string is consumed by the PicoDeck launcher, which lives in
+the PicoDeck repo and is not vendored here, so the strictness of its parser cannot
 be verified from this repo. A plain three-part version removes the risk
 entirely. Prerelease status is carried by GitHub's own flag, which is
 independent of the version string.
@@ -83,7 +83,7 @@ Three units, each with one responsibility.
 
 ### `tools/bundle.py`
 
-The single definition of what a PicOS Rally app bundle contains. Importable and
+The single definition of what a PicoDeck Rally app bundle contains. Importable and
 runnable.
 
 ```python
@@ -91,7 +91,7 @@ collect(app_dir) -> [(source_path, arcname), ...]
 ```
 
 ```
-python3 tools/bundle.py --out dist/PicOS-Rally-v0.5.0.zip [--expect-version 0.5.0]
+python3 tools/bundle.py --out dist/PicoDeck-Rally-v0.5.0.zip [--expect-version 0.5.0]
 ```
 
 Bundle contents, twelve files, mirroring the on-device app dir:
@@ -251,7 +251,7 @@ output directory, the latter is currently untracked but unignored.
 release. The full order:
 
 1. Bump `app.json` version to `0.5.0`, commit to `main`, confirm CI is green.
-2. Build the bundle locally: `python3 tools/bundle.py --out dist/PicOS-Rally-v0.5.0.zip --expect-version 0.5.0`.
+2. Build the bundle locally: `python3 tools/bundle.py --out dist/PicoDeck-Rally-v0.5.0.zip --expect-version 0.5.0`.
 3. Unzip it to a scratch dir, deploy with `RALLY_APP_DIR=<scratch> rally_hw.py push`,
    and confirm Cooloola Point loads and is drivable from bundle contents alone.
 4. Tag and push: `git tag v0.5.0 && git push origin v0.5.0`.
@@ -293,5 +293,5 @@ the manifest is a `palettize.py` change and is out of scope here.
 - Any change to the art or track bake pipeline.
 - Adding `clut.bin` to `assets/manifest.json`.
 - Hardware-in-the-loop testing from CI.
-- Release automation for the PicOS repo itself.
+- Release automation for the PicoDeck repo itself.
 - The M6 work described in `ROADMAP.md`.

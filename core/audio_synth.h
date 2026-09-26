@@ -1,4 +1,4 @@
-// audio_synth — rally synth core (M5). Pure C, no PicOS headers: the app
+// audio_synth — rally synth core (M5). Pure C, no PicoDeck headers: the app
 // runs synth_mix() on Core 1 from the audio callback; the headless suite
 // runs the same code on the host. 11025 Hz stereo, Doom-proven stream rate.
 //

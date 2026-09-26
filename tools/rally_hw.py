@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Standalone PicOS hardware driver for the rally M1 spike.
+"""Standalone PicoDeck hardware driver for the rally M1 spike.
 Does the full deploy sequence over /dev/ttyACM0 without the MCP server:
   exit app -> zip+push -> relaunch -> keypresses -> tail logs -> screenshot
 Usage: rally_hw.py [push|launch|keys|shot|log] [--zip PATH]

@@ -1,4 +1,4 @@
-// font6x8 — standard embedded 6x8 font, extracted from PicOS display.c
+// font6x8 — standard embedded 6x8 font, extracted from PicoDeck display.c
 // (same public-domain 'font6x8' pattern). ASCII 0x20-0x7E, 6 bytes/glyph (columns).
 #pragma once
 #include <stdint.h>

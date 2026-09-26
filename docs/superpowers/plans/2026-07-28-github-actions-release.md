@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build and test PicOS Rally on every push, and publish an installable app bundle as a GitHub prerelease when a `v*` tag is pushed.
+**Goal:** Build and test PicoDeck Rally on every push, and publish an installable app bundle as a GitHub prerelease when a `v*` tag is pushed.
 
 **Architecture:** A new `tools/bundle.py` owns the single definition of what an app bundle contains, verifies it against `assets/manifest.json`, and emits a deterministic zip. Both `tools/rally_hw.py` (deploy to hardware) and `.github/workflows/release.yml` (publish) call it, so what you test on device is what players download. `.github/workflows/ci.yml` gates every push on the existing headless test suite plus an ARM cross-build.
 
@@ -32,7 +32,7 @@
 
 Read these before starting. They explain why the code looks the way it does.
 
-**What a PicOS app dir looks like.** The game reads its data with paths built from a runtime `app_dir`. `app/main.c:116` builds `<app_dir>/assets/<name>`, `app/main.c:180` builds `<app_dir>/tuning/handling.toml`, and `app/main.c:196` builds `<app_dir>/stage01.bin`. The repo root is laid out identically to the on-device app dir, which is why `tools/rally_hw.py:10` sets `APP_DIR` to the repo root. The bundle zip reproduces that layout so it can be unzipped straight onto the device.
+**What a PicoDeck app dir looks like.** The game reads its data with paths built from a runtime `app_dir`. `app/main.c:116` builds `<app_dir>/assets/<name>`, `app/main.c:180` builds `<app_dir>/tuning/handling.toml`, and `app/main.c:196` builds `<app_dir>/stage01.bin`. The repo root is laid out identically to the on-device app dir, which is why `tools/rally_hw.py:10` sets `APP_DIR` to the repo root. The bundle zip reproduces that layout so it can be unzipped straight onto the device.
 
 **Only 8 asset files are ever loaded.** `load_assets()` at `app/main.c:144` opens `clut.bin`, then one `tiles_<name>.bin` per entry in `TILE_SEC_NAMES`, then `car.bin`, `props.bin`, `hero.bin`. `core/tiles_sections.h:4` currently lists four sections. The three `tiles_path_*.bin` files in `assets/` are dead since M4 replaced the RPG path tiles with the procedural road, and every `.bin.json` sidecar plus `atlas.json` is bake metadata. A glob over `assets/*.bin` would ship files the game never opens.
 
@@ -199,7 +199,7 @@ Create `tools/bundle.py`:
 
 ```python
 #!/usr/bin/env python3
-"""Defines what a PicOS Rally app bundle contains.
+"""Defines what a PicoDeck Rally app bundle contains.
 
 Single source of truth, shared by two consumers:
   - .github/workflows/release.yml, which packages the published zip
@@ -576,7 +576,7 @@ def build_zip_bytes(root=REPO_ROOT):
 
 def main(argv=None):
     p = argparse.ArgumentParser(
-        description="Package a PicOS Rally app bundle.")
+        description="Package a PicoDeck Rally app bundle.")
     p.add_argument("--out", required=True, help="output zip path")
     p.add_argument("--expect-version",
                    help="fail unless app.json's version equals this")
@@ -949,7 +949,7 @@ Publish an attested prerelease when a `v*` tag is pushed, and bump `app.json` so
 
 **Interfaces:**
 - Consumes: `bundle.py` CLI from Task 3, and `./.github/actions/arm-toolchain` from Task 5.
-- Produces: a published GitHub prerelease with `PicOS-Rally-v<version>.zip` and `SHA256SUMS`.
+- Produces: a published GitHub prerelease with `PicoDeck-Rally-v<version>.zip` and `SHA256SUMS`.
 
 - [ ] **Step 1: Bump the app version**
 
@@ -1035,7 +1035,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/bundle.py \
-            --out "dist/PicOS-Rally-${{ steps.ver.outputs.tag }}.zip" \
+            --out "dist/PicoDeck-Rally-${{ steps.ver.outputs.tag }}.zip" \
             --expect-version "${{ steps.ver.outputs.version }}"
 
       - name: Write SHA256SUMS
@@ -1048,14 +1048,14 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
-          subject-path: dist/PicOS-Rally-${{ steps.ver.outputs.tag }}.zip
+          subject-path: dist/PicoDeck-Rally-${{ steps.ver.outputs.tag }}.zip
 
       - name: Write release notes
         run: |
           set -euo pipefail
           cat > dist/NOTES.md <<'EOF'
-          Prerelease build of PicOS Rally for the ClockworkPi PicoCalc v2.0,
-          running on PicOS. One stage: Cooloola Point, roughly 2.7 km of
+          Prerelease build of PicoDeck Rally for the ClockworkPi PicoCalc v2.0,
+          running on PicoDeck. One stage: Cooloola Point, roughly 2.7 km of
           Queensland coastal gravel.
 
           ## Install
@@ -1067,7 +1067,7 @@ jobs:
 
           ```
           sha256sum -c SHA256SUMS
-          gh attestation verify PicOS-Rally-<tag>.zip --repo jeffory/PicOS-Rally
+          gh attestation verify PicoDeck-Rally-<tag>.zip --repo PicoDeck/rally
           ```
 
           ## What is not yet verified
@@ -1086,9 +1086,9 @@ jobs:
           set -euo pipefail
           gh release create "${{ steps.ver.outputs.tag }}" \
             --prerelease \
-            --title "PicOS Rally ${{ steps.ver.outputs.tag }}" \
+            --title "PicoDeck Rally ${{ steps.ver.outputs.tag }}" \
             --notes-file dist/NOTES.md \
-            "dist/PicOS-Rally-${{ steps.ver.outputs.tag }}.zip" \
+            "dist/PicoDeck-Rally-${{ steps.ver.outputs.tag }}.zip" \
             dist/SHA256SUMS
 ```
 
@@ -1102,9 +1102,9 @@ Expected: `valid YAML`
 Run exactly what the workflow runs, with the tag values substituted by hand:
 ```bash
 make
-python3 tools/bundle.py --out dist/PicOS-Rally-v0.5.0.zip --expect-version 0.5.0
+python3 tools/bundle.py --out dist/PicoDeck-Rally-v0.5.0.zip --expect-version 0.5.0
 cd dist && sha256sum ./*.zip > SHA256SUMS && cat SHA256SUMS && cd ..
-unzip -l dist/PicOS-Rally-v0.5.0.zip
+unzip -l dist/PicoDeck-Rally-v0.5.0.zip
 ```
 Expected: bundle prints 12 files, `SHA256SUMS` has one line, `unzip -l` lists the 12 arcnames. Leave `dist/` in place for Task 7.
 
@@ -1173,7 +1173,7 @@ reaches the device is provably the exact bytes that will be published rather
 than a re-derivation from source:
 
 ```bash
-python3 tools/rally_hw.py push --zip dist/PicOS-Rally-v0.5.0.zip
+python3 tools/rally_hw.py push --zip dist/PicoDeck-Rally-v0.5.0.zip
 ```
 Expected: the push reports the zip's exact size and 12 files, and the device
 reports `UNZIP 12/12`.
@@ -1241,18 +1241,18 @@ Expected: the `Release` workflow completes green.
 
 ```bash
 rm -rf /tmp/rally-release && mkdir -p /tmp/rally-release && cd /tmp/rally-release
-gh release download v0.5.0 --repo jeffory/PicOS-Rally
+gh release download v0.5.0 --repo PicoDeck/rally
 sha256sum -c SHA256SUMS
-gh attestation verify PicOS-Rally-v0.5.0.zip --repo jeffory/PicOS-Rally
+gh attestation verify PicoDeck-Rally-v0.5.0.zip --repo PicoDeck/rally
 cd -
 ```
-Expected: `PicOS-Rally-v0.5.0.zip: OK` from `sha256sum`, and a successful provenance verification naming the release workflow.
+Expected: `PicoDeck-Rally-v0.5.0.zip: OK` from `sha256sum`, and a successful provenance verification naming the release workflow.
 
 - [ ] **Step 5: Smoke-test the CI-built binary on hardware**
 
 This is the binary compiled by ARM 14.3.rel1 on the runner, not your local Fedora build, and it has never been executed:
 ```bash
-python3 tools/rally_hw.py push --zip /tmp/rally-release/PicOS-Rally-v0.5.0.zip
+python3 tools/rally_hw.py push --zip /tmp/rally-release/PicoDeck-Rally-v0.5.0.zip
 python3 tools/rally_hw.py launch
 python3 tools/rally_hw.py log
 ```

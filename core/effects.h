@@ -1,5 +1,5 @@
 // effects — M5 feel: dust particles + skid marks. Visual only (never fed
-// back into the sim, so M3 determinism is unaffected). No PicOS headers.
+// back into the sim, so M3 determinism is unaffected). No PicoDeck headers.
 #pragma once
 
 #include <stdint.h>

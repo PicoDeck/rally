@@ -1,4 +1,4 @@
-# PicOS Rally — locked palette. seed 20260726.
+# PicoDeck Rally — locked palette. seed 20260726.
 # 48 colors, indices 0-47 of the 256-entry CLUT. Every shipped asset is
 # snapped to these by tools/palettize.py (no dithering — PixelLab output is
 # already pixel art). Indices 48-255 are derived at load: for each locked

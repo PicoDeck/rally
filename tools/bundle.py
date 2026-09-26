@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Defines what a PicOS Rally app bundle contains.
+"""Defines what a PicoDeck Rally app bundle contains.
 
 Single source of truth, shared by two consumers:
   - .github/workflows/release.yml, which packages the published zip
@@ -175,7 +175,7 @@ def build_zip_bytes(root=REPO_ROOT, files=None):
 
 def main(argv=None):
     p = argparse.ArgumentParser(
-        description="Package a PicOS Rally app bundle.")
+        description="Package a PicoDeck Rally app bundle.")
     p.add_argument("--out", required=True, help="output zip path")
     p.add_argument("--expect-version",
                    help="fail unless app.json's version equals this")

@@ -1,4 +1,4 @@
-# PicOS Rally — Roadmap
+# PicoDeck Rally — Roadmap
 
 Status as of 2026-08-01. **M0–M5 are done** (measured platform facts → grey
 box → physics → track → assets/renderer → feel). The game runs on hardware:
@@ -11,13 +11,13 @@ Cooloola Point completable, real art, synth audio, 30 fps locked.
 ### Ghost
 Record the best run's inputs per sim step (deterministic replay — the sim is
 hash-verified, so inputs are sufficient; no car-state snapshot needed).
-Persist to `/data/com.picos.rally/ghost.bin` via the fs API. Replay as a
+Persist to `/data/net.picodeck.rally/ghost.bin` via the fs API. Replay as a
 translucent ghost car on subsequent runs (CLUT-shade the sprite), with a
 HUD delta readout (±s vs ghost at each checkpoint). Best run replaces ghost
 only when the finish time beats it.
 
 ### Settings
-Persist via `appconfig` (`/data/com.picos.rally/config.json`):
+Persist via `appconfig` (`/data/net.picodeck.rally/config.json`):
 - assist dial (default 0.60 — **currently untested with a human**; expose
   0.0/0.3/0.6/0.9 steps)
 - audio volume (master, engine/sfx balance if the ear test demands it)
@@ -168,10 +168,10 @@ were tuned against a slower presentation than the game now has.
 
 ---
 
-## PicOS-side (upstream — lives in the PicOS repo, tracked here)
+## PicoDeck-side (upstream — lives in the PicoDeck repo, tracked here)
 
 - Port the sim flushRows/flushRegion dirty-buffer fix (`72f7576a` on
-  feat/picos-rally) to develop.
+  feat/picodeck-rally) to develop.
 - `drawPlane` host-order texture documentation fix (one-liner).
 - `MAX_APPS=32` silently drops the 33rd app — hit during rally dev with a
   full SD card.

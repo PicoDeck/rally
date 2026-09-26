@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared palette/CLUT library for the PicOS Rally asset pipeline.
+"""Shared palette/CLUT library for the PicoDeck Rally asset pipeline.
 
 Loads assets/style.toml (48 locked colors), derives the 256-entry CLUT per
 the layout documented in style.toml, and snaps RGB(A) pixels to the locked

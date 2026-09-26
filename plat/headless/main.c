@@ -1,4 +1,4 @@
-// Headless test runner for core/ — no display, no PicOS, no SDL.
+// Headless test runner for core/ — no display, no PicoDeck, no SDL.
 // Table-driven: tyre model, load transfer, surface lookup, input ramps,
 // determinism. TAP-ish output, exit code = failures (CI-gateable).
 #include <stdio.h>

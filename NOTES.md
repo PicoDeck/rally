@@ -1,8 +1,8 @@
-# PicOS Rally — NOTES.md
+# PicoDeck Rally — NOTES.md
 
 Milestone 0 findings first; tuning observations and hardware findings accrete here.
 
-> **2026-07-28: extracted to its own repo — https://github.com/jeffory/PicOS-Rally**
+> **2026-07-28: extracted to its own repo — https://github.com/PicoDeck/rally**
 > (paths updated: sdk at sdk/native, source art at art/). NOTES.md continues here.
 This file is the artefact that survives the project. Date format: 2026-07-26.
 
@@ -15,12 +15,12 @@ This file is the artefact that survives the project. Date format: 2026-07-26.
 - A native app is a directory `/apps/<name>/` on the SD card: `app.json` +
   `main.elf` (ELF32 PIE, ARM Thumb-2). Native wins over `main.lua` if both exist.
 - Build: `arm-none-eabi-gcc -mcpu=cortex-m33 -mthumb -fpie -fno-plt
-  -ffunction-sections -fdata-sections -T linker.ld -Wl,--entry=picos_main -Wl,-pie
+  -ffunction-sections -fdata-sections -T linker.ld -Wl,--entry=picodeck_main -Wl,-pie
   -nostartfiles -nodefaultlibs -lc -lm -lgcc` (doom Makefile). Link against
   `sdk/native/os.h` + `app_abi.h` only — no Pico SDK headers; the OS owns hardware.
-- Entry: `void picos_main(const PicoCalcAPI *api, const char *app_dir,
+- Entry: `void picodeck_main(const PicoCalcAPI *api, const char *app_dir,
   const char *app_id, const char *app_name)`. Returning = exit to launcher.
-- Lifecycle loop (doom `dg_picos.c`): `while (!api->sys->shouldExit()) {
+- Lifecycle loop (doom `dg_picodeck.c`): `while (!api->sys->shouldExit()) {
   api->sys->poll(); …tick… }`. `poll()` pumps keyboard, HTTP callbacks, and the
   Sym-key system menu; it also feeds the 10 s watchdog (core1 relays a heartbeat;
   >60 s without a poll reboots the device — feed it during long loads).
@@ -29,7 +29,7 @@ This file is the artefact that survives the project. Date format: 2026-07-26.
   App runs on PSP with a dedicated stack (16 KB SRAM preferred, 64 KB PSRAM
   fallback), canary-guarded. Max image 7 MB; practical PSRAM ceiling for the app
   image + its `qmiAlloc` heap is ~5–6 MB (firmware + Lua heap share the 8 MB).
-- Exit paths: return from `picos_main`, or `exit()` longjmp (doom pattern).
+- Exit paths: return from `picodeck_main`, or `exit()` longjmp (doom pattern).
   `shouldExit()` fires once when the user picks "Exit App" in the system menu.
 - `app.json` keys that matter: `id`, `name`, `type:"native"`,
   `system_clock_khz` (doom ships 300000), `requirements` (e.g. `["audio"]`,
@@ -39,17 +39,17 @@ This file is the artefact that survives the project. Date format: 2026-07-26.
 
 ### 0.2 Simulator loop (validated 2026-07-26)
 
-The picos MCP drives everything. Exact sequence that works:
+The picodeck MCP drives everything. Exact sequence that works:
 
 ```
 # one-time per worktree: build the sim
-cd /home/keith/Projects/picos-rally && make simulator        # → build_sim/picos_simulator
+cd /home/keith/Projects/picodeck-rally && make simulator        # → build_sim/picodeck_simulator
 
 # build a native app (example: SDK hello)
 cd sdk/native && make                                        # → main.elf
 
 # stage: app.json + main.elf in a dir, then via MCP:
-start_simulator(project_root=/home/keith/Projects/picos-rally, headless=true)
+start_simulator(project_root=/home/keith/Projects/picodeck-rally, headless=true)
 get_status()                    # MUST show "SimulatorWiFi" — else you're on hardware!
 push_app(local_dir=<stage dir>, app_name=hello_c)   # copies into <worktree>/apps/
 # launcher caches apps at boot → restart sim when a NEW app appears:
@@ -191,7 +191,7 @@ unnecessary — the firmware's double buffer already provides render-vs-DMA over
   ⇒ Worst-case input delivery latency ≈ 50 ms + STM32 scan latency + I2C drain.
   This is THE platform constraint for driving feel. Mitigations: 180 ms steering
   ramp + assist (already the design), fixed 60 Hz sim steps, and if measurement
-  says it's bad, a PicOS-level change (e.g. adaptive poll rate while an app holds
+  says it's bad, a PicoDeck-level change (e.g. adaptive poll rate while an app holds
   buttons, or a reduced FIFO-read cost) — to be proposed, not hacked around.
 - BTN_MENU (F10) is intercepted by the driver for the OS; apps never see it.
   Idle-dim swallows the waking press. KEY_BRK is the screenshot trigger.
@@ -270,28 +270,28 @@ Gotchas recorded for the project:
 
 | Need | Provided by | How Rally uses it |
 |---|---|---|
-| Display | **PicOS** | `getBackBuffer` + `flushRegion`; clip rect; LUT convert in game code |
-| Partial-rect push | **PicOS** | `flushRegion`/`flushRows` — no bypass needed |
-| Non-blocking present | **PicOS** | DMA double-buffered flush; never waits |
-| Input | **PicOS** | `getButtons*`; 20 Hz cap is a platform fact (see §0.6) |
-| Timing | **PicOS** | `getTimeMs/Us`, `perf->beginFrame/endFrame` |
-| Filesystem | **PicOS** | `fs->*` for tuning/track/asset files; `zip` handles for the asset pack |
-| Audio output | **PicOS** | `startStream/pushSamples`; synth in `setAudioCallback` on core1 |
-| Frame pacing | **PicOS** | `perf->setTargetFPS` + non-blocking flush |
-| Watchdog/system menu | **PicOS** | `sys->poll()` each frame |
-| Asset packaging | **PicOS** | zip read-in-place (v5) — one `assets.zip` on SD |
-| DMA | Pico SDK (inside PicOS) | already used by display/audio drivers; nothing game-side |
-| Multicore | Pico SDK (inside PicOS) | core1 reserved; `setAudioCallback` is the sanctioned hook |
+| Display | **PicoDeck** | `getBackBuffer` + `flushRegion`; clip rect; LUT convert in game code |
+| Partial-rect push | **PicoDeck** | `flushRegion`/`flushRows` — no bypass needed |
+| Non-blocking present | **PicoDeck** | DMA double-buffered flush; never waits |
+| Input | **PicoDeck** | `getButtons*`; 20 Hz cap is a platform fact (see §0.6) |
+| Timing | **PicoDeck** | `getTimeMs/Us`, `perf->beginFrame/endFrame` |
+| Filesystem | **PicoDeck** | `fs->*` for tuning/track/asset files; `zip` handles for the asset pack |
+| Audio output | **PicoDeck** | `startStream/pushSamples`; synth in `setAudioCallback` on core1 |
+| Frame pacing | **PicoDeck** | `perf->setTargetFPS` + non-blocking flush |
+| Watchdog/system menu | **PicoDeck** | `sys->poll()` each frame |
+| Asset packaging | **PicoDeck** | zip read-in-place (v5) — one `assets.zip` on SD |
+| DMA | Pico SDK (inside PicoDeck) | already used by display/audio drivers; nothing game-side |
+| Multicore | Pico SDK (inside PicoDeck) | core1 reserved; `setAudioCallback` is the sanctioned hook |
 | Interpolator (SIO) | **game** (tiny) | optional: tilemap address gen in blitter inner loop — justify only if profile says the blitter is hot |
 | 8bpp indexed scene buffer | **game** | one PSRAM buffer + 256-entry CLUT → back buffer (doom pattern) |
-| Mode-7 alternative | PicOS (`drawPlane`) | exists; M1 spike decides ortho-vs-mode7 |
+| Mode-7 alternative | PicoDeck (`drawPlane`) | exists; M1 spike decides ortho-vs-mode7 |
 | Fixed-point trig LUTs | **game** | 1024-entry sin/cos + fast atan2 in `core/` |
 | Spline/track/pacenotes | **game** (host-baked) | `tools/trackbake` offline |
 | Synth audio | **game** | square/saw/LFSR into PCM ring |
 | Unit/CI testing | **game** | `plat/headless` stub of the app-facing API |
 
-Nothing in the third column touches hardware behind PicOS's back. No PicOS change
-is required for M0–M1; candidate future PicOS improvements (to propose, not hack):
+Nothing in the third column touches hardware behind PicoDeck's back. No PicoDeck change
+is required for M0–M1; candidate future PicoDeck improvements (to propose, not hack):
 input poll-rate adaptivity, `flushRegion_nocopy` exposure, crypto in sim.
 
 ## 2. Open questions carried to M1
@@ -301,18 +301,18 @@ input poll-rate adaptivity, `flushRegion_nocopy` exposure, crypto in sim.
    arrows+SHIFT; 4th key ghosts. Controls must fit in 3 simultaneous.**
 3. ~~Is 20 Hz input acceptable?~~ Deferred to M2 feel test with the user driving;
    the 180 ms steer ramp + assist is designed around it. If it feels bad, the fix
-   is a PicOS-level poll-rate change, proposed then with data.
+   is a PicoDeck-level poll-rate change, proposed then with data.
    **M1 user drive note: "turning just doesn't seem very responsive"** — first
    tuning target for M2 (ramp times, maxSteer curve, maybe poll-rate proposal).
 4. 300 MHz for Rally? Measured cost: full-frame cap drops 57→43 fps. Decide after
    M2 CPU benchmarks — default is 200 MHz. (M1 says NOT needed: sim is 0.15 ms.)
-5. Suspend/resume: does PicOS background apps? (Believed no — launcher is modal.
+5. Suspend/resume: does PicoDeck background apps? (Believed no — launcher is modal.
    Confirm; if so, ask user whether in scope.)
 
 ## 3. M1 — grey box + Mode 7 spike (2026-07-27, all hardware-measured)
 
 **App**: `apps/rally/` — core/ (mathx LUT trig, tuning parser, bicycle sim,
-camera, ortho blitter + 6×8 text on raw BE fb), app/ (PicOS glue, fixed 60 Hz
+camera, ortho blitter + 6×8 text on raw BE fb), app/ (PicoDeck glue, fixed 60 Hz
 sim, per-poll edge accumulation, F-key + char-key toggles, autopilot),
 plat/headless/ (host build, scripted drive + state hash). 42.5 KB text.
 
@@ -352,7 +352,7 @@ candidate one-line doc fix upstream (separate commit, later).
   (USB drops). Only send exit when status says an app is actually running.
 - Device spontaneously entered USB-MSC mode twice (host sees /dev/sda); serial
   dies until ejected. `udisksctl power-off` clears it but the device then needs
-  a physical re-plug. Stale picos_mcp.py processes from old sessions hold the
+  a physical re-plug. Stale picodeck_mcp.py processes from old sessions hold the
   port — check `fuser /dev/ttyACM*` before serial work.
 - Sim vs hardware: sim drawPlane tramp reads texture from emulated memory and
   renders host-side (fast, correct colors); hardware render cost is the real
@@ -522,7 +522,7 @@ on LCD?).
 
 ## 7. M5 — feel (2026-07-27)
 
-**Audio (Core 1, Doom pattern).** `core/audio_synth.c`: pure mixer (no PicOS)
+**Audio (Core 1, Doom pattern).** `core/audio_synth.c`: pure mixer (no PicoDeck)
 — engine = 2 detuned saws + square sub through a 5-gear box (rpm from vx,
 gain from throttle), surface noise = LFSR + one-pole lowpass (gain × speed ×
 slip boost, per-surface gain/alpha), SPSC 4-deep one-shot queue (countdown

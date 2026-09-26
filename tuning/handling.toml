@@ -1,4 +1,4 @@
-# PicOS Rally — handling tuning. Reloaded from the filesystem at stage start:
+# PicoDeck Rally — handling tuning. Reloaded from the filesystem at stage start:
 # a tuning change is a reload, not a rebuild. All SI units unless noted.
 
 # --- vehicle (§9 starting figures) ---

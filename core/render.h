@@ -1,5 +1,5 @@
 // render — orthographic ground blitter + grey-box car, on a raw RGB565
-// big-endian framebuffer (the PicOS back buffer format). Pure C, no PicOS
+// big-endian framebuffer (the PicoDeck back buffer format). Pure C, no PicoDeck
 // types: the app layer hands us a pointer and the camera/sim state.
 //
 // Projection lives behind one interface (§4a): the app picks per frame —

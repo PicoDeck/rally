@@ -1,11 +1,11 @@
-# PicOS Rally — native app build
+# PicoDeck Rally — native app build
 CC      = arm-none-eabi-gcc
 CFLAGS  = -mcpu=cortex-m33 -mthumb -std=gnu99 \
           -fpie -fno-plt -ffunction-sections -fdata-sections \
           -O2 -g -Wall -Wextra -Wno-unused-parameter \
           -I. -Isdk/native
 LDFLAGS = -T sdk/native/linker.ld \
-          -Wl,--entry=picos_main \
+          -Wl,--entry=picodeck_main \
           -Wl,-pie \
           -Wl,--gc-sections \
           -Wl,--no-warn-rwx-segments \

@@ -1,5 +1,5 @@
-// PicOS Rally — M4: real art, tile renderer, viewport/HUD split.
-// App layer: PicOS API glue only. Game logic lives in core/ (no PicOS headers).
+// PicoDeck Rally — M4: real art, tile renderer, viewport/HUD split.
+// App layer: PicoDeck API glue only. Game logic lives in core/ (no PicoDeck headers).
 //
 // Drive: F5 throttle, F4 brake/reverse, LEFT/RIGHT steer, BACKSPACE handbrake.
 // Flow: any drive key starts the countdown; F5 retries from results;
@@ -404,7 +404,7 @@ static void render_hud(uint16_t *fb, const race_t *r, const car_t *car) {
     gfx_text(&s_gfx, fb, 320, 6, VP_H + 34, line, PAL_HUD_AMBER_DIM);
 }
 
-void picos_main(const PicoCalcAPI *api,
+void picodeck_main(const PicoCalcAPI *api,
                 const char *app_dir, const char *app_id, const char *app_name) {
     (void)app_id; (void)app_name;
     s_api = api;

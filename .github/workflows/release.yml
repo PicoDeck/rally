@@ -69,7 +69,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/bundle.py \
-            --out "dist/PicOS-Rally-${TAG}.zip" \
+            --out "dist/PicoDeck-Rally-${TAG}.zip" \
             --expect-version "${VERSION}"
 
       - name: Write SHA256SUMS
@@ -82,7 +82,7 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
-          subject-path: dist/PicOS-Rally-${{ steps.ver.outputs.tag }}.zip
+          subject-path: dist/PicoDeck-Rally-${{ steps.ver.outputs.tag }}.zip
 
       - name: Write release notes
         env:
@@ -90,8 +90,8 @@ jobs:
         run: |
           set -euo pipefail
           cat > dist/NOTES.md <<'EOF'
-          Prerelease build of PicOS Rally for the ClockworkPi PicoCalc v2.0,
-          running on PicOS. One stage: Cooloola Point, roughly 2.7 km of
+          Prerelease build of PicoDeck Rally for the ClockworkPi PicoCalc v2.0,
+          running on PicoDeck. One stage: Cooloola Point, roughly 2.7 km of
           Queensland coastal gravel.
 
           ## Install
@@ -104,7 +104,7 @@ jobs:
           ```
           sha256sum -c SHA256SUMS
           EOF
-          printf 'gh attestation verify PicOS-Rally-%s.zip --repo jeffory/PicOS-Rally\n' "$TAG" >> dist/NOTES.md
+          printf 'gh attestation verify PicoDeck-Rally-%s.zip --repo PicoDeck/rally\n' "$TAG" >> dist/NOTES.md
           cat >> dist/NOTES.md <<'EOF'
           ```
 
@@ -125,7 +125,7 @@ jobs:
           set -euo pipefail
           gh release create "${TAG}" \
             --prerelease \
-            --title "PicOS Rally ${TAG}" \
+            --title "PicoDeck Rally ${TAG}" \
             --notes-file dist/NOTES.md \
-            "dist/PicOS-Rally-${TAG}.zip" \
+            "dist/PicoDeck-Rally-${TAG}.zip" \
             dist/SHA256SUMS

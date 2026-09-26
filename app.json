@@ -1,6 +1,6 @@
 {
-    "id": "com.picos.rally",
-    "name": "PicOS Rally",
+    "id": "net.picodeck.rally",
+    "name": "PicoDeck Rally",
     "description": "Top-down arcade-sim rally. One coastal Queensland gravel stage.",
     "type": "native",
     "version": "0.5.0",

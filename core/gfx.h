@@ -1,4 +1,4 @@
-// gfx — M4 8bpp indexed render core. No PicOS headers: the app hands us a
+// gfx — M4 8bpp indexed render core. No PicoDeck headers: the app hands us a
 // raw RGB565 big-endian framebuffer and asset blobs loaded from SD.
 //
 // Pipeline: assets stay 8bpp palette-indexed in PSRAM (tiles, sprites); every

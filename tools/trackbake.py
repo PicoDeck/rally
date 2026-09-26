@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""trackbake — bake a PicOS Rally stage from tracks/<stage>.toml into the
+"""trackbake — bake a PicoDeck Rally stage from tracks/<stage>.toml into the
 binary blob the game loads from SD.
 
 Everything the spec §8 requires is baked offline:
