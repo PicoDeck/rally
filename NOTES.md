@@ -395,6 +395,12 @@ about surfaces again, suspect a sampling offset before touching the model.**
 arrows steer, BACKSPACE handbrake. F1 projection, F2 pace, F3 autopilot,
 F9 debug overlay. Chars: m/p/d/r/h/-/=/[/]/0-2 (+ ESC exit).
 
+**Gamepad (issue #25):** the drive keys now come from `api->gamepad`
+(`app/pad_input.h`): A throttle, B brake, Y handbrake, D-pad steer, Start
+begins/retries. The default bindings put A on F4 and B on F5, so throttle and
+brake swapped keys (F5/F4 → F4/F5) against the M2.3 layout above, which
+firmware older than API 9 still uses. Intro/results hints print the bound key.
+
 ## 5. M3 — track (2026-07-27, user-approved: "stage reads — close M3")
 
 **The stage**: `tracks/stage01.toml` — 36-node Catmull-Rom centreline, 2670 m,

@@ -1,12 +1,15 @@
 // PicoDeck Rally — M4: real art, tile renderer, viewport/HUD split.
 // App layer: PicoDeck API glue only. Game logic lives in core/ (no PicoDeck headers).
 //
-// Drive: F5 throttle, F4 brake/reverse, LEFT/RIGHT steer, BACKSPACE handbrake.
-// Flow: any drive key starts the countdown; F5 retries from results;
+// Drive (gamepad; defaults shown): A (F4) throttle, B (F5) brake/reverse,
+// LEFT/RIGHT steer, Y (BACKSPACE) handbrake. Firmware without the gamepad
+// keeps F5 throttle / F4 brake (app/pad_input.h).
+// Flow: any drive key starts the countdown; A retries from results;
 //       ESC/menu exits. F3 autopilot (AI drives), F9 debug overlay,
 //       F2 pace 30/60/max, 'r' reloads tuning.
 #include "app_abi.h"
 #include "os.h"
+#include "pad_input.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -164,12 +167,14 @@ static int load_assets(const PicoCalcAPI *api, const char *app_dir) {
 
 // ── Input plumbing (poll wrapper: edges must be accumulated at EVERY poll) ──
 static uint32_t s_pressed_accum;
+static uint32_t s_pad_pressed_accum;
 static char s_char_accum;
 
 static void app_poll(void) {
     s_api->sys->poll();
     uint32_t pressed = s_api->input->getButtonsPressed();
     s_pressed_accum |= pressed;
+    s_pad_pressed_accum |= pad_pressed(s_api);
     char c = s_api->input->getChar();
     if (c) s_char_accum = c;
 }
@@ -467,6 +472,8 @@ void picodeck_main(const PicoCalcAPI *api,
         // toggles
         uint32_t pressed = s_pressed_accum;
         s_pressed_accum = 0;
+        uint32_t pad_pressed_now = s_pad_pressed_accum;
+        s_pad_pressed_accum = 0;
         if (pressed & BTN_F2) s_pace = (s_pace + 1) % 3;
         if (pressed & BTN_F3) { s_autopilot ^= 1;
             api->sys->log("RALLY: autopilot %d", s_autopilot); }
@@ -480,12 +487,13 @@ void picodeck_main(const PicoCalcAPI *api,
 
         // race flow transitions from input
         if (s_race.state == RS_INTRO) {
-            if ((pressed & (BTN_F4 | BTN_F5 | BTN_ENTER)) || s_autopilot) {
+            if ((pad_pressed_now & (PAD_A | PAD_B | PAD_START)) ||
+                (pressed & BTN_ENTER) || s_autopilot) {
                 s_race.state = RS_COUNTDOWN;
                 s_race.countdown = 3 * 60;   // 3 s at 60 Hz
             }
         } else if (s_race.state == RS_FINISH) {
-            if (pressed & BTN_F5) race_reset_run(&car, &cam);
+            if (pad_pressed_now & (PAD_A | PAD_START)) race_reset_run(&car, &cam);
         }
 
         // ── Fixed-step sim (60 Hz) ──────────────────────────────────────────
@@ -495,17 +503,17 @@ void picodeck_main(const PicoCalcAPI *api,
         int steps = 0;
         while (sim_acc_us >= 16667 && steps < 4) {
             app_poll();
-            uint32_t b = api->input->getButtons();
+            uint32_t b = pad_held(api);
             sim_input_t in;
             if (s_autopilot && s_race.state == RS_RACING) {
                 ai_drive(&s_ai, &s_track, &car, &in);
             } else {
-                in.throttle = (b & BTN_F5) ? 1.0f : 0.0f;
-                in.brake = (b & BTN_F4) ? 1.0f : 0.0f;
+                in.throttle = (b & PAD_A) ? 1.0f : 0.0f;
+                in.brake = (b & PAD_B) ? 1.0f : 0.0f;
                 in.steer = 0.0f;
-                if (b & BTN_LEFT) in.steer += 1.0f;
-                if (b & BTN_RIGHT) in.steer -= 1.0f;
-                in.handbrake = (b & BTN_BACKSPACE) != 0;
+                if (b & PAD_LEFT) in.steer += 1.0f;
+                if (b & PAD_RIGHT) in.steer -= 1.0f;
+                in.handbrake = (b & PAD_Y) != 0;
             }
             if (s_race.state == RS_COUNTDOWN) {
                 // Hold the car on the line; just tick the counter. (The old
@@ -570,7 +578,8 @@ void picodeck_main(const PicoCalcAPI *api,
                             52, 106);
             gfx_text(&s_gfx, fb.fb, VP_H, 128, 118, "COOLOOLA POINT", PAL_HUD_AMBER);
             gfx_text(&s_gfx, fb.fb, VP_H, 128, 134, "2.7km gravel / shakedown", PAL_HUD_TEXT);
-            gfx_text(&s_gfx, fb.fb, VP_H, 128, 162, "F5 to start", PAL_HUD_AMBER);
+            snprintf(line, sizeof(line), "%s to start", pad_label(api, PAD_A));
+            gfx_text(&s_gfx, fb.fb, VP_H, 128, 162, line, PAL_HUD_AMBER);
         } else {
             render_track_ground_gfx(&s_gfx, fb.fb, &cam, &s_track, VP_H);
             render_track_props_gfx(&s_gfx, fb.fb, &cam, &s_track, VP_H,
@@ -599,7 +608,8 @@ void picodeck_main(const PicoCalcAPI *api,
                          (unsigned long)(s_race.best_total_ms / 1000),
                          (unsigned long)(s_race.best_total_ms % 1000));
                 gfx_text(&s_gfx, fb.fb, VP_H, 56, 92, line, PAL_HUD_TEXT);
-                gfx_text(&s_gfx, fb.fb, VP_H, 56, 118, "F5 retry", PAL_HUD_AMBER);
+                snprintf(line, sizeof(line), "%s retry", pad_label(api, PAD_A));
+                gfx_text(&s_gfx, fb.fb, VP_H, 56, 118, line, PAL_HUD_AMBER);
                 gfx_text(&s_gfx, fb.fb, VP_H, 56, 134, "ESC quit", PAL_HUD_TEXT);
                 gfx_blit_sprite(&s_gfx, fb.fb, VP_H, s_hero, HERO_SPRITE, HERO_SPRITE,
                                 200, 88);

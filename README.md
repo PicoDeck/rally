@@ -22,6 +22,16 @@ Requires `arm-none-eabi-gcc` and the PicoDeck SDK headers (vendored at
 make            # produces main.elf
 ```
 
+## Controls
+
+The game reads the PicoDeck gamepad (API version 9), so Settings -> Controls
+rebinding applies; the intro and results screens show the bound key. Defaults:
+A (F4) throttle, B (F5) brake/reverse, D-pad left/right steer, Y (Backspace)
+handbrake; A, B or Start begins the stage, A or Start retries from the
+results; Esc quits. Firmware without the gamepad keeps the old keys: F5
+throttle, F4 brake, arrows, Backspace. Dev toggles (F2 pace, F3 autopilot, F9
+debug, `r` `d` `p`) stay on their keys.
+
 ## Dev loop
 
 - `plat/headless/` — host test runner (`make && ./rally_headless`, TAP
