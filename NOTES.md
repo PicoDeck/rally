@@ -400,6 +400,11 @@ F9 debug overlay. Chars: m/p/d/r/h/-/=/[/]/0-2 (+ ESC exit).
 begins/retries. The default bindings put A on F4 and B on F5, so throttle and
 brake swapped keys (F5/F4 → F4/F5) against the M2.3 layout above, which
 firmware older than API 9 still uses. Intro/results hints print the bound key.
+Dev shortcuts (F2/F3/F9, chars r/d/p) stay on their keys but are skipped for
+any key the player bound to a pad button (`pad_key_bound`, checked every
+frame): firmware still reports a pad-bound key and its char, so otherwise A on
+F3 would toggle autopilot and WASD would toggle debug. Esc quits on the button
+bit (physical) or char 27 (injected).
 
 ## 5. M3 — track (2026-07-27, user-approved: "stage reads — close M3")
 

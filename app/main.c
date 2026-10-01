@@ -4,7 +4,7 @@
 // Drive (gamepad; defaults shown): A (F4) throttle, B (F5) brake/reverse,
 // LEFT/RIGHT steer, Y (BACKSPACE) handbrake. Firmware without the gamepad
 // keeps F5 throttle / F4 brake (app/pad_input.h).
-// Flow: any drive key starts the countdown; A retries from results;
+// Flow: A, B or Start starts the countdown; A or Start retries from results;
 //       ESC/menu exits. F3 autopilot (AI drives), F9 debug overlay,
 //       F2 pace 30/60/max, 'r' reloads tuning.
 #include "app_abi.h"
@@ -474,15 +474,23 @@ void picodeck_main(const PicoCalcAPI *api,
         s_pressed_accum = 0;
         uint32_t pad_pressed_now = s_pad_pressed_accum;
         s_pad_pressed_accum = 0;
-        if (pressed & BTN_F2) s_pace = (s_pace + 1) % 3;
-        if (pressed & BTN_F3) { s_autopilot ^= 1;
+        // Dev shortcuts. A key the player bound to a gamepad button is that
+        // button: its shortcut is off (firmware still reports the key and
+        // its char). Re-checked every frame: bindings change in the menu.
+        if ((pressed & BTN_F2) && !pad_key_bound(api, "F2"))
+            s_pace = (s_pace + 1) % 3;
+        if ((pressed & BTN_F3) && !pad_key_bound(api, "F3")) {
+            s_autopilot ^= 1;
             api->sys->log("RALLY: autopilot %d", s_autopilot); }
-        if (pressed & BTN_F9) s_debug ^= 1;
-        if (s_char_accum == 'r') reload_tuning(api, app_dir, &tun);
-        if (s_char_accum == 'd') s_debug ^= 1;
-        if (s_char_accum == 'p') { s_autopilot ^= 1;
+        if ((pressed & BTN_F9) && !pad_key_bound(api, "F9")) s_debug ^= 1;
+        if (s_char_accum == 'r' && !pad_key_bound(api, "R"))
+            reload_tuning(api, app_dir, &tun);
+        if (s_char_accum == 'd' && !pad_key_bound(api, "D")) s_debug ^= 1;
+        if (s_char_accum == 'p' && !pad_key_bound(api, "P")) {
+            s_autopilot ^= 1;
             api->sys->log("RALLY: autopilot %d", s_autopilot); }
-        if (s_char_accum == 27) break;
+        if (pressed & BTN_ESC) break;   // physical Esc sets the button bit
+        if (s_char_accum == 27) break;  // injected Esc arrives as char 27
         s_char_accum = 0;
 
         // race flow transitions from input

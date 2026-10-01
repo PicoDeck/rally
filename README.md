@@ -30,7 +30,11 @@ A (F4) throttle, B (F5) brake/reverse, D-pad left/right steer, Y (Backspace)
 handbrake; A, B or Start begins the stage, A or Start retries from the
 results; Esc quits. Firmware without the gamepad keeps the old keys: F5
 throttle, F4 brake, arrows, Backspace. Dev toggles (F2 pace, F3 autopilot, F9
-debug, `r` `d` `p`) stay on their keys.
+debug, `r` `d` `p`) stay on their keys, except a key you bound to a pad button,
+which is that button only.
+
+**Changed: throttle F5 -> F4, brake F4 -> F5.** To get the old layout back,
+rebind A and B under Settings -> Controls -> This game.
 
 ## Dev loop
 

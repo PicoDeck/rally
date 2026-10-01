@@ -20,7 +20,7 @@ TARGET  = main.elf
 
 all: $(TARGET)
 
-HDRS    = $(wildcard core/*.h) app/../core/font6x8.h
+HDRS    = $(wildcard core/*.h) app/../core/font6x8.h app/pad_input.h
 
 $(TARGET): $(SRCS) $(HDRS) sdk/native/linker.ld sdk/native/os.h sdk/native/app_abi.h
 	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $@
