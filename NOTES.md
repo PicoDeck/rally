@@ -412,7 +412,7 @@ F4's binding, because Shift+F4 sends F9 (it would flip debug while
 throttling): on default bindings F9 is off and `d` toggles debug. Esc bound to
 a pad button both acts as that button and quits: deliberate, Esc always quits.
 The log carries `RALLY: state N` (race state changes) and `RALLY: input thr=
-brk= hb=` (on change) for the E2E tests.
+brk= hb=` (on change, human input only: not while the autopilot drives) for the E2E tests.
 
 ## 5. M3 — track (2026-07-27, user-approved: "stage reads — close M3")
 

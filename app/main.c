@@ -537,10 +537,10 @@ void picodeck_main(const PicoCalcAPI *api,
             {
                 static int l_thr = -1, l_brk = -1, l_hb = -1;
                 int t = in.throttle > 0.0f, br = in.brake > 0.0f, hb = in.handbrake != 0;
-                if (t != l_thr || br != l_brk || hb != l_hb) {
+                // Human input only: autopilot changes it several times a second.
+                if (!s_autopilot && (t != l_thr || br != l_brk || hb != l_hb)) {
                     l_thr = t; l_brk = br; l_hb = hb;
-                    api->sys->log("RALLY: input thr=%d brk=%d hb=%d%s", t, br, hb,
-                                  s_autopilot ? " (autopilot)" : "");
+                    api->sys->log("RALLY: input thr=%d brk=%d hb=%d", t, br, hb);
                 }
             }
             if (s_race.state == RS_COUNTDOWN) {
