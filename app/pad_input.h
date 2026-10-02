@@ -38,16 +38,22 @@ static inline uint32_t pad_pressed(const PicoCalcAPI *api) {
                         : pad_from_keys(api->input->getButtonsPressed());
 }
 
-// Is the key `name` ("F3", "R", ...) bound to any gamepad button? A key the
-// player bound to the pad is a pad button, not a dev shortcut: firmware still
-// reports the key itself (and its char), so the app must ignore it there.
+// The buttons Rally reads. Only these can shadow a dev shortcut: the default
+// bindings put L on F2 and R on F3 and the game never reads them.
+#define PAD_RALLY_USED (PAD_A | PAD_B | PAD_Y | PAD_START | PAD_LEFT | PAD_RIGHT)
+
+// Is the key `name` ("F3", "R", ...) bound to a gamepad button the game reads?
+// Such a key is a pad button, not a dev shortcut: firmware still reports the
+// key itself (and its char), so the app must ignore it there.
 static inline int pad_key_bound(const PicoCalcAPI *api, const char *name) {
     if (!pad_has(api)) return 0;
-    for (int b = 0; b < 12; b++)
+    for (int b = 0; b < 12; b++) {
+        if (!((1u << b) & PAD_RALLY_USED)) continue;
         for (int slot = 0; slot < 2; slot++) {
             const char *l = api->gamepad->getLabel(1u << b, slot);
             if (l && strcasecmp(l, name) == 0) return 1;
         }
+    }
     return 0;
 }
 

@@ -474,6 +474,13 @@ void picodeck_main(const PicoCalcAPI *api,
         s_pressed_accum = 0;
         uint32_t pad_pressed_now = s_pad_pressed_accum;
         s_pad_pressed_accum = 0;
+        // Race state changes are logged (the E2E tests read them).
+        static int prev_state = -1;
+        if (s_race.state != prev_state) {
+            prev_state = s_race.state;
+            api->sys->log("RALLY: state %d", prev_state);
+        }
+
         // Dev shortcuts. A key the player bound to a gamepad button is that
         // button: its shortcut is off (firmware still reports the key and
         // its char). Re-checked every frame: bindings change in the menu.
@@ -482,7 +489,11 @@ void picodeck_main(const PicoCalcAPI *api,
         if ((pressed & BTN_F3) && !pad_key_bound(api, "F3")) {
             s_autopilot ^= 1;
             api->sys->log("RALLY: autopilot %d", s_autopilot); }
-        if ((pressed & BTN_F9) && !pad_key_bound(api, "F9")) s_debug ^= 1;
+        // Shift+F4 sends F9: with F4 on a pad button (A by default) that would
+        // flip debug while throttling, so F9 follows F4's binding too. The
+        // 'd' char toggles debug either way.
+        if ((pressed & BTN_F9) && !pad_key_bound(api, "F9") &&
+                !pad_key_bound(api, "F4")) s_debug ^= 1;
         if (s_char_accum == 'r' && !pad_key_bound(api, "R"))
             reload_tuning(api, app_dir, &tun);
         if (s_char_accum == 'd' && !pad_key_bound(api, "D")) s_debug ^= 1;
@@ -522,6 +533,15 @@ void picodeck_main(const PicoCalcAPI *api,
                 if (b & PAD_LEFT) in.steer += 1.0f;
                 if (b & PAD_RIGHT) in.steer -= 1.0f;
                 in.handbrake = (b & PAD_Y) != 0;
+            }
+            {
+                static int l_thr = -1, l_brk = -1, l_hb = -1;
+                int t = in.throttle > 0.0f, br = in.brake > 0.0f, hb = in.handbrake != 0;
+                if (t != l_thr || br != l_brk || hb != l_hb) {
+                    l_thr = t; l_brk = br; l_hb = hb;
+                    api->sys->log("RALLY: input thr=%d brk=%d hb=%d%s", t, br, hb,
+                                  s_autopilot ? " (autopilot)" : "");
+                }
             }
             if (s_race.state == RS_COUNTDOWN) {
                 // Hold the car on the line; just tick the counter. (The old
